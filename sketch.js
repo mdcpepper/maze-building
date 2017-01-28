@@ -1,5 +1,5 @@
 var cols, rows;
-var w               = 20;
+var w               = 40;
 var grid            = [];
 var cellsMined      = 0;
 var steps           = 0;
@@ -10,7 +10,7 @@ var current;
 var pick;
 
 function setup() {
-	createCanvas(800, 800);
+	createCanvas(1200, 600);
 	frameRate(10);
 
 	cols = floor(width / w);
