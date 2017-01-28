@@ -1,16 +1,17 @@
 var cols, rows;
-var w               = 20;
+var w               = 40;
 var grid            = [];
 var cellsMined      = 0;
 var steps           = 0;
-var stack           = [];
+var workers         = 1;
+var stacks          = [];
 var showGrid        = false;
 var showBreadcrumbs = true;
-var current;
+var currents        = [];
 var pick;
 
 function setup() {
-	createCanvas(800, 800);
+	createCanvas(1200, 600);
 	frameRate(10);
 
 	cols = floor(width / w);
@@ -25,7 +26,13 @@ function setup() {
 		}
 	}
 
-	current = grid[floor(random(0, grid.length))];
+	for (var i = 0; i < workers; i++) {
+		currents[i] = grid[floor(random(0, grid.length))];
+	}
+
+	for (var i = 0; i < workers; i++) {
+		stacks[i] = [];
+	}
 }
 
 function draw() {
@@ -35,38 +42,42 @@ function draw() {
 		grid[i].show();
 	}
 
-	current.visited = true;
+	for (var i = 0; i < workers; i++) {
 
-	if (current.visited && stack.length > 0) {
-		current.highlight();
+		currents[i].visited = true;
+
+		if (currents[i].visited && stacks[i].length > 0) {
+			currents[i].highlight();
+		}
+
+		var next = currents[i].checkNeighbors();
+		if (next) {
+			next.visited = true;
+
+			stacks[i].push(currents[i]);
+			currents[i].stacked = true;
+
+			removeWalls(currents[i], next);
+
+			currents[i] = next;
+			cellsMined++;
+		} else if (stacks[i].length > 0) {
+			currents[i] = stacks[i].pop();
+			currents[i].stacked = false;
+		}
+
 	}
 
-	var next = current.checkNeighbors();
-	if (next) {
-		next.visited = true;
-
-		stack.push(current);
-		current.stacked = true;
-
-		removeWalls(current, next);
-
-		current = next;
-		cellsMined++;
-	} else if (stack.length > 0) {
-		current = stack.pop();
-		current.stacked = false;
-	}
-
-	cellsLeft = (grid.length - (cellsMined + 1));
-
-	if (cellsLeft) {
-		steps++;
-	}
-
-	document.getElementById('stack-size').textContent  = stack.length;
-	document.getElementById('cells-mined').textContent = cellsMined + 1;
-	document.getElementById('cells-left').textContent  = cellsLeft;
-	document.getElementById('steps-taken').textContent = steps;
+	// cellsLeft = (grid.length - (cellsMined + 1));
+	//
+	// if (cellsLeft) {
+	// 	steps++;
+	// }
+	//
+	// // document.getElementById('stack-size').textContent  = stack.length;
+	// document.getElementById('cells-mined').textContent = cellsMined + 1;
+	// document.getElementById('cells-left').textContent  = cellsLeft;
+	// document.getElementById('steps-taken').textContent = steps;
 }
 
 function index(i, j) {
